@@ -10,6 +10,7 @@ const Assess = () => import('@/views/assess/index.vue')
 const Plan = () => import('@/views/plan/index.vue')
 const Work = () => import('@/views/work/index.vue')
 const Accept = () => import('@/views/accept/index.vue')
+const AcceptDetail = () => import('@/views/accept/detail.vue')
 const Pothole = () => import('@/views/pothole/index.vue')
 const Crack = () => import('@/views/crack/index.vue')
 const Drain = () => import('@/views/drain/index.vue')
@@ -33,6 +34,7 @@ const router = createRouter({
     { path: '/plan', name: 'plan', component: Plan },
     { path: '/work', name: 'work', component: Work },
     { path: '/accept', name: 'accept', component: Accept },
+    { path: '/accept/doc/:no', name: 'accept-detail', component: AcceptDetail },
     { path: '/pothole', name: 'pothole', component: Pothole },
     { path: '/crack', name: 'crack', component: Crack },
     { path: '/drain', name: 'drain', component: Drain },
