@@ -1,6 +1,7 @@
 """竣工验收接口：维护验收单，覆盖开始验收、确认通过、下发返工等动作。"""
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
@@ -30,6 +31,29 @@ def list_entries(
     return PageResult(items=items, total=total, page=page, size=size)
 
 
+@router.get("/overview")
+def accept_overview(
+    start: str | None = Query(default=None, description="统计起始日期，格式 YYYY-MM-DD"),
+    end: str | None = Query(default=None, description="统计截止日期，格式 YYYY-MM-DD"),
+) -> dict[str, Any]:
+    """结论概览：按验收项目与承接单位汇总通过、返工、待验收件数，支持按时间段切换。"""
+    try:
+        start_day = date.fromisoformat(start) if start else None
+        end_day = date.fromisoformat(end) if end else None
+    except ValueError:
+        raise HTTPException(status_code=400, detail="时间段格式应为 YYYY-MM-DD")
+    if start_day and end_day and start_day > end_day:
+        raise HTTPException(status_code=400, detail="开始日期不能晚于结束日期")
+    return service.overview(start=start_day, end=end_day)
+
+
+@router.get("/export")
+def export_entries() -> dict[str, Any]:
+    """导出竣工验收清单：返回当前过滤条件下的全量数据。"""
+    items, total = service.list_entries(page=1, size=10000)
+    return {"module": "accept", "total": total, "items": items}
+
+
 @router.get("/{entry_id}", response_model=dict)
 def get_entry(entry_id: int) -> dict:
     """读取单条验收单明细；不存在时给出可读的错误说明。"""
@@ -56,10 +80,3 @@ def run_action(entry_id: int, payload: EntryPayload) -> ActionResult:
     if entry is None:
         return ActionResult(ok=False, message=message)
     return ActionResult(ok=True, message=message, entry=entry)
-
-
-@router.get("/export")
-def export_entries() -> dict[str, Any]:
-    """导出竣工验收清单：返回当前过滤条件下的全量数据。"""
-    items, total = service.list_entries(page=1, size=10000)
-    return {"module": "accept", "total": total, "items": items}
